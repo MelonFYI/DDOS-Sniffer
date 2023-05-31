@@ -1,125 +1,291 @@
-import subprocess
-from scapy.all import *
-from tkinter import *
+import scapy.all as scapy
+from scapy.layers import http
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.layers.l2 import ARP
 from win10toast import ToastNotifier
+import tkinter as tk
+from tkinter import messagebox, ttk
+import threading
+import time
 
-# Create a ToastNotifier object
-toaster = ToastNotifier()
 
-# Create the GUI window
-window = Tk()
-window.title("Malicious Traffic Detector")
-window.geometry("400x200")
+class MaliciousTrafficDetector:
+    def __init__(self):
+        self.interface = "eth0"  # Default interface, can be changed by the user
+        self.alert_threshold = 10  # Default alert threshold, can be changed by the user
+        self.detected_ips = set()
+        self.lock = threading.Lock()
 
-# Create a label for displaying notifications
-label = Label(window, text="No malicious traffic detected.", font=("Arial", 12))
-label.pack(pady=20)
+    def sniff_packets(self):
+        scapy.sniff(iface=self.interface, store=False, prn=self.process_packet)
 
-# Define a dictionary to store IP address and packet count
-ip_packet_count = {}
+    def process_packet(self, packet):
+        if packet.haslayer(ARP):
+            # Process ARP packets
+            source_ip = packet[ARP].psrc
+            source_mac = packet[ARP].hwsrc
+            print(f"[ARP] Source IP: {source_ip} Source MAC: {source_mac}")
+        elif packet.haslayer(IP):
+            if packet.haslayer(TCP):
+                # Process TCP packets
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_port = packet[TCP].sport
+                destination_port = packet[TCP].dport
+                print(f"[TCP] Source IP: {source_ip}:{source_port} --> Destination IP: {destination_ip}:{destination_port}")
+                self.check_for_malicious_traffic(source_ip)
+            elif packet.haslayer(UDP):
+                # Process UDP packets
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_port = packet[UDP].sport
+                destination_port = packet[UDP].dport
+                print(f"[UDP] Source IP: {source_ip}:{source_port} --> Destination IP: {destination_ip}:{destination_port}")
+                self.check_for_malicious_traffic(source_ip)
+            elif packet.haslayer(http.HTTPRequest):
+                # Process HTTP packets
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                method = packet[http.HTTPRequest].Method.decode()
+                path = packet[http.HTTPRequest].Path.decode()
+                print(f"[HTTP] Source IP: {source_ip} --> Destination IP: {destination_ip} {method} {path}")
+                if path.lower() == "/malicious":
+                    self.check_for_malicious_traffic(source_ip)
 
-# Define the maximum allowed packet count per IP address
-MAX_PACKET_COUNT = 100
+    def check_for_malicious_traffic(self, ip):
+        with self.lock:
+            if ip in self.detected_ips:
+                return
 
-# Define the rate limit per IP address (in packets per second)
-RATE_LIMIT = 10
+            self.detected_ips.add(ip)
+            if len(self.detected_ips) > self.alert_threshold:
+                self.displimport scapy.all as scapy
+from scapy.layers import http
+from scapy.layers.inet import IP, TCP, UDP
+from scapy.layers.l2 import ARP
+from win10toast import ToastNotifier
+import tkinter as tk
+from tkinter import messagebox, ttk
+import threading
+import time
 
-# Define the threshold for anomaly detection
-ANOMALY_THRESHOLD = 1000
 
-# Define the callback function to process sniffed packets
-def packet_callback(packet):
-    # Check if the packet contains malicious traffic based on your criteria
-    if packet.haslayer(TCP) and packet[TCP].flags == 2:
-        # Extract relevant information from the packet
-        src_ip = packet[IP].src
-        dst_ip = packet[IP].dst
-        src_port = packet[TCP].sport
-        dst_port = packet[TCP].dport
+class MaliciousTrafficDetector:
+    def __init__(self):
+        self.interface = "eth0"  # Default interface, can be changed by the user
+        self.alert_threshold = 10  # Default alert threshold, can be changed by the user
+        self.anomaly_threshold = 50  # Default anomaly threshold, can be changed by the user
+        self.detected_ips = set()
+        self.detected_anomalies = {}
+        self.lock = threading.Lock()
 
-        # Prepare the notification message
-        message = f"Malicious Traffic Detected!\n\nSource IP: {src_ip}\nDestination IP: {dst_ip}\nSource Port: {src_port}\nDestination Port: {dst_port}"
+    def sniff_packets(self):
+        scapy.sniff(iface=self.interface, store=False, prn=self.process_packet)
 
-        # Display a toast notification
-        toaster.show_toast("Security Alert", message, duration=10)
+    def process_packet(self, packet):
+        if packet.haslayer(ARP):
+            # Process ARP packets
+            source_ip = packet[ARP].psrc
+            source_mac = packet[ARP].hwsrc
+            print(f"[ARP] Source IP: {source_ip} Source MAC: {source_mac}")
+        elif packet.haslayer(IP):
+            if packet.haslayer(TCP):
+                # Process TCP packets
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_port = packet[TCP].sport
+                destination_port = packet[TCP].dport
+                print(f"[TCP] Source IP: {source_ip}:{source_port} --> Destination IP: {destination_ip}:{destination_port}")
+                self.check_for_malicious_traffic(source_ip)
+                self.detect_anomaly(source_ip)
+            elif packet.haslayer(UDP):
+                # Process UDP packets
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                source_port = packet[UDP].sport
+                destination_port = packet[UDP].dport
+                print(f"[UDP] Source IP: {source_ip}:{source_port} --> Destination IP: {destination_ip}:{destination_port}")
+                self.check_for_malicious_traffic(source_ip)
+                self.detect_anomaly(source_ip)
+            elif packet.haslayer(http.HTTPRequest):
+                # Process HTTP packets
+                source_ip = packet[IP].src
+                destination_ip = packet[IP].dst
+                method = packet[http.HTTPRequest].Method.decode()
+                path = packet[http.HTTPRequest].Path.decode()
+                print(f"[HTTP] Source IP: {source_ip} --> Destination IP: {destination_ip} {method} {path}")
+                if path.lower() == "/malicious":
+                    self.check_for_malicious_traffic(source_ip)
+                    self.detect_anomaly(source_ip)
 
-        # Update the label with the notification message
-        label.config(text=message)
+    def check_for_malicious_traffic(self, ip):
+        with self.lock:
+            if ip in self.detected_ips:
+                return
 
-        # Apply rate limiting
-        if not is_rate_limited(src_ip):
-            increment_packet_count(src_ip)
-            # Apply traffic filtering
-            if is_suspicious_traffic(packet):
-                drop_packet(packet)
+            self.detected_ips.add(ip)
+            if len(self.detected_ips) > self.alert_threshold:
+                self.display_toast_notification("Malicious traffic detected: Alert Threshold Exceeded")
+                self.send_notification_email()
+                self.log_malicious_traffic()
 
-        # Apply anomaly detection
-        if is_anomalous_traffic(src_ip):
-            raise_anomaly_alert(src_ip)
+    def detect_anomaly(self, ip):
+        with self.lock:
+            if ip in self.detected_anomalies:
+                self.detected_anomalies[ip] += 1
+            else:
+                self.detected_anomalies[ip] = 1
 
-# Method to check if an IP address is rate limited
-def is_rate_limited(ip):
-    current_time = time.time()
-    if ip in ip_packet_count:
-        count, last_time = ip_packet_count[ip]
-        if count >= MAX_PACKET_COUNT and current_time - last_time < 1:
-            return True
-    return False
+            if self.detected_anomalies[ip] > self.anomaly_threshold:
+                self.display_toast_notification(f"Anomaly detected for IP: {ip}")
+                self.block_ip(ip)
 
-# Method to increment packet count for an IP address
-def increment_packet_count(ip):
-    current_time = time.time()
-    if ip in ip_packet_count:
-        count, last_time = ip_packet_count[ip]
-        if current_time - last_time >= 1:
-            ip_packet_count[ip] = (1, current_time)
-        else:
-            ip_packet_count[ip] = (count + 1, last_time)
-    else:
-        ip_packet_count[ip] = (1, current_time)
+    def display_toast_notification(self, message):
+        toaster = ToastNotifier()
+        toaster.show_toast("Malicious Traffic Detected", message, duration=5)
 
-# Method to check if traffic is suspicious
-def is_suspicious_traffic(packet):
-    # TODO: Implement traffic filtering rules here
-    # Analyze packet characteristics and return True if it's suspicious, otherwise False
+    def send_notification_email(self):
+        # TODO: Implement email notification logic
+        pass
 
-    # Example implementation: Consider traffic with a large number of packets per second as suspicious
-    if packet.haslayer(IP):
-        return packet[IP].src == "x.x.x.x" and packet[IP].len > 1000
-    return False
+    def log_malicious_traffic(self):
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+        with open("malicious_traffic.log", "a") as f:
+            for ip in self.detected_ips:
+                f.write(f"[{current_time}] Malicious traffic detected from IP: {ip}\n")
 
-# Method to check if traffic is anomalous
-def is_anomalous_traffic(ip):
-    # TODO: Implement anomaly detection logic here
-    # Analyze traffic patterns for the given IP and return True if it's anomalous, otherwise False
+    def block_ip(self, ip):
+        # TODO: Implement IP blocking
+        pass
 
-    # Example implementation: Check if the packet count for the IP exceeds the threshold
-    if ip in ip_packet_count:
-        count, _ = ip_packet_count[ip]
-        return count > ANOMALY_THRESHOLD
-    return False
+    def start_sniffing(self):
+        threading.Thread(target=self.sniff_packets).start()
 
-# Method to raise an anomaly alert
-def raise_anomaly_alert(ip):
-    # TODO: Implement actions to be taken when an anomaly is detected
+    def change_dynamic_ip(self):
+        # TODO: Implement method to change dynamic IP
+        pass
 
-    # Notify administrators, log the event, or take other appropriate measures
+    def handle_start_button(self):
+        self.interface = self.interface_var.get()
+        self.alert_threshold = int(self.alert_threshold_var.get())
+        self.anomaly_threshold = int(self.anomaly_threshold_var.get())
+        self.start_sniffing()
 
-    # Example implementation: Display a toast notification for the anomaly alert
-    message = f"Anomalous Traffic Detected from IP: {ip}"
-    toaster.show_toast("Anomaly Alert", message, duration=10)
+    def create_gui(self):
+        root = tk.Tk()
+        root.title("Malicious Traffic Detector")
 
-# Method to drop a packet
-def drop_packet(packet):
-    # TODO: Implement packet dropping logic here
-    # Drop or block the packet to prevent it from reaching the target
+        # Interface Selection
+        interface_frame = ttk.Frame(root, padding="20")
+        interface_frame.pack()
+        ttk.Label(interface_frame, text="Interface:").pack(side="left")
+        self.interface_var = tk.StringVar()
+        interface_combobox = ttk.Combobox(interface_frame, textvariable=self.interface_var)
+        interface_combobox['values'] = ["eth0", "eth1", "wlan0", "wlan1"]
+        interface_combobox.current(0)
+        interface_combobox.pack(side="left")
 
-    # Example implementation using `iptables` command in Linux:
-    drop_packet_cmd = "iptables -A INPUT -p tcp --dport 80 -j DROP"
-    subprocess.run(drop_packet_cmd, shell=True)
+        # Alert Threshold
+        threshold_frame = ttk.Frame(root, padding="20")
+        threshold_frame.pack()
+        ttk.Label(threshold_frame, text="Alert Threshold:").pack(side="left")
+        self.alert_threshold_var = tk.StringVar()
+        threshold_entry = ttk.Entry(threshold_frame, textvariable=self.alert_threshold_var)
+        threshold_entry.pack(side="left")
 
-# Sniff packets on the network interface
-sniff(prn=packet_callback, filter="tcp")
+        # Anomaly Threshold
+        anomaly_frame = ttk.Frame(root, padding="20")
+        anomaly_frame.pack()
+        ttk.Label(anomaly_frame, text="Anomaly Threshold:").pack(side="left")
+        self.anomaly_threshold_var = tk.StringVar()
+        anomaly_entry = ttk.Entry(anomaly_frame, textvariable=self.anomaly_threshold_var)
+        anomaly_entry.pack(side="left")
 
-# Run the GUI main loop
-window.mainloop()
+        # Start Button
+        start_button = ttk.Button(root, text="Start", command=self.handle_start_button)
+        start_button.pack(pady=10)
+
+        root.mainloop()
+
+
+def main():
+    detector = MaliciousTrafficDetector()
+    detector.create_gui()
+
+
+if __name__ == "__main__":
+    main()
+ay_toast_notification("Malicious traffic detected: Alert Threshold Exceeded")
+                self.send_notification_email()
+                self.log_malicious_traffic()
+
+    def display_toast_notification(self, message):
+        toaster = ToastNotifier()
+        toaster.show_toast("Malicious Traffic Detected", message, duration=5)
+
+    def send_notification_email(self):
+        # TODO: Implement email notification logic
+        pass
+
+    def log_malicious_traffic(self):
+        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+        with open("malicious_traffic.log", "a") as f:
+            for ip in self.detected_ips:
+                f.write(f"[{current_time}] Malicious traffic detected from IP: {ip}\n")
+
+    def start_sniffing(self):
+        threading.Thread(target=self.sniff_packets).start()
+
+    def change_dynamic_ip(self):
+        # TODO: Implement method to change dynamic IP
+        pass
+
+    def detect_anomaly(self):
+        # TODO: Implement anomaly detection
+        pass
+
+    def block_ip(self, ip):
+        # TODO: Implement IP blocking
+        pass
+
+    def handle_start_button(self):
+        self.interface = self.interface_var.get()
+        self.alert_threshold = int(self.alert_threshold_var.get())
+        self.start_sniffing()
+
+    def create_gui(self):
+        root = tk.Tk()
+        root.title("Malicious Traffic Detector")
+
+        # Interface Selection
+        interface_frame = ttk.Frame(root, padding="20")
+        interface_frame.pack()
+        ttk.Label(interface_frame, text="Interface:").pack(side="left")
+        self.interface_var = tk.StringVar()
+        interface_combobox = ttk.Combobox(interface_frame, textvariable=self.interface_var)
+        interface_combobox['values'] = ["eth0", "eth1", "wlan0", "wlan1"]
+        interface_combobox.current(0)
+        interface_combobox.pack(side="left")
+
+        # Alert Threshold
+        threshold_frame = ttk.Frame(root, padding="20")
+        threshold_frame.pack()
+        ttk.Label(threshold_frame, text="Alert Threshold:").pack(side="left")
+        self.alert_threshold_var = tk.StringVar()
+        threshold_entry = ttk.Entry(threshold_frame, textvariable=self.alert_threshold_var)
+        threshold_entry.pack(side="left")
+
+        # Start Button
+        start_button = ttk.Button(root, text="Start", command=self.handle_start_button)
+        start_button.pack(pady=10)
+
+        root.mainloop()
+
+
+def main():
+    detector = MaliciousTrafficDetector()
+    detector.create_gui()
+
+
+if __name__ == "__main__":
+    main()
