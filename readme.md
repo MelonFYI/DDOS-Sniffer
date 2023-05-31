@@ -1,34 +1,62 @@
-# DDOS Sniffer
+# DDOS-Sniffer
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/MelonFYI/DDOS-Sniffer/blob/main/LICENSE)
+![GitHub](https://img.shields.io/github/license/MelonFYI/DDOS-Sniffer)
 
-## Description
-The DDOS Sniffer is a program that helps detect and mitigate Distributed Denial-of-Service (DDoS) attacks by sniffing network traffic and analyzing patterns associated with DDoS activity. It provides real-time monitoring and notification capabilities to help protect your network infrastructure.
+DDOS-Sniffer is an advanced network security tool developed by MelonFYI LTD. It detects and alerts you to malicious traffic on your PC. It leverages packet sniffing techniques and includes features such as anomaly detection, traffic analysis, and more to enhance your network security. DDOS-Sniffer is provided as a free product to promote network security and protect users from potential threats.
 
 ## Features
-- Real-time monitoring of network traffic for potential DDoS attacks
-- Analysis of network packet patterns and characteristics
-- Detection and identification of potential DDoS traffic based on user-defined rules
-- Alert notifications to inform system administrators about potential attacks
-- Interactive console interface with `curses` library for a nicer user experience
-- Customizable and adaptable to different network environments
 
-## Installation
-1. Clone the repository: `git clone https://github.com/MelonFYI/DDOS-Sniffer.git`
-2. Install the required dependencies: `pip install scapy win10toast`
+- **Malicious Traffic Detection**: The program monitors network traffic and detects malicious traffic based on defined criteria.
+- **Toast Notification**: When malicious traffic is detected, a toast notification is displayed on your Windows system.
+- **Anomaly Detection**: Anomaly detection techniques are employed to identify traffic patterns that deviate from normal behavior.
+- **Traffic Analysis**: Deep analysis of network traffic including payload inspection, protocol analysis, and behavior profiling.
+- **Rate Limiting**: The program applies rate limiting to prevent excessive traffic from a single source.
+- **Traffic Filtering**: Suspicious traffic is filtered based on defined rules to prevent damage.
+- **Anomaly Alerts**: Alerts are raised when anomalous traffic patterns are detected.
+- **Graphical User Interface**: The program now features a user-friendly GUI built with Tkinter.
 
-## Usage
-1. Open a terminal or command prompt.
-2. Navigate to the project directory.
-3. Run the program: `python malicious_traffic_detector.py`
-4. Keep the program running to continuously monitor network traffic for potential DDoS attacks.
-5. Follow the prompts in the console interface to take actions such as changing your IP address.
+## Getting Started
 
-## Contributing
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
+To get started with DDOS-Sniffer, follow these steps:
+
+1. Clone the repository
+2. Install the required dependencies: ``pip install -r requirements.txt``
+3. Run the program: ``python malicious_traffic_detector.py``
+4. The program will start sniffing network traffic and display toast notifications for any detected malicious traffic.
 
 ## License
-This project is licensed under the [MIT License](https://github.com/MelonFYI/DDOS-Sniffer/blob/main/LICENSE).
 
-## Copyright
-&copy; 2023 MelonFYI LTD. All rights reserved. Unauthorized copying, modification, distribution, or reproduction of this repository and its contents is strictly prohibited.
+This project is licensed under the [MIT License](LICENSE).
+
+## Contributing
+
+Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request.
+
+## Release Notes
+
+- **Version 1.0** (Initial Release)
+- Malicious traffic detection
+- Toast notifications for detected malicious traffic
+- Anomaly detection
+- Traffic analysis
+- Rate limiting
+- Traffic filtering
+- Graphical User Interface
+
+## Roadmap
+
+Future updates and planned features for DDOS-Sniffer include:
+
+- Blacklisting of known malicious IP addresses or ranges
+- Whitelisting of trusted IP addresses or ranges
+- Advanced anomaly detection techniques
+- Real-time monitoring dashboard
+- Traffic diversion mechanisms
+
+## Feedback and Support
+
+If you have any feedback, questions, or need support, please feel free to contact us at support@melon.fyi
+
+---
+
+© 2023 MelonFYI LTD. All rights reserved.
