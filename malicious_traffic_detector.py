@@ -1,9 +1,19 @@
 import subprocess
 from scapy.all import *
+from tkinter import *
 from win10toast import ToastNotifier
 
 # Create a ToastNotifier object
 toaster = ToastNotifier()
+
+# Create the GUI window
+window = Tk()
+window.title("Malicious Traffic Detector")
+window.geometry("400x200")
+
+# Create a label for displaying notifications
+label = Label(window, text="No malicious traffic detected.", font=("Arial", 12))
+label.pack(pady=20)
 
 # Define a dictionary to store IP address and packet count
 ip_packet_count = {}
@@ -13,6 +23,9 @@ MAX_PACKET_COUNT = 100
 
 # Define the rate limit per IP address (in packets per second)
 RATE_LIMIT = 10
+
+# Define the threshold for anomaly detection
+ANOMALY_THRESHOLD = 1000
 
 # Define the callback function to process sniffed packets
 def packet_callback(packet):
@@ -30,12 +43,19 @@ def packet_callback(packet):
         # Display a toast notification
         toaster.show_toast("Security Alert", message, duration=10)
 
+        # Update the label with the notification message
+        label.config(text=message)
+
         # Apply rate limiting
         if not is_rate_limited(src_ip):
             increment_packet_count(src_ip)
             # Apply traffic filtering
             if is_suspicious_traffic(packet):
                 drop_packet(packet)
+
+        # Apply anomaly detection
+        if is_anomalous_traffic(src_ip):
+            raise_anomaly_alert(src_ip)
 
 # Method to check if an IP address is rate limited
 def is_rate_limited(ip):
@@ -68,6 +88,27 @@ def is_suspicious_traffic(packet):
         return packet[IP].src == "x.x.x.x" and packet[IP].len > 1000
     return False
 
+# Method to check if traffic is anomalous
+def is_anomalous_traffic(ip):
+    # TODO: Implement anomaly detection logic here
+    # Analyze traffic patterns for the given IP and return True if it's anomalous, otherwise False
+
+    # Example implementation: Check if the packet count for the IP exceeds the threshold
+    if ip in ip_packet_count:
+        count, _ = ip_packet_count[ip]
+        return count > ANOMALY_THRESHOLD
+    return False
+
+# Method to raise an anomaly alert
+def raise_anomaly_alert(ip):
+    # TODO: Implement actions to be taken when an anomaly is detected
+
+    # Notify administrators, log the event, or take other appropriate measures
+
+    # Example implementation: Display a toast notification for the anomaly alert
+    message = f"Anomalous Traffic Detected from IP: {ip}"
+    toaster.show_toast("Anomaly Alert", message, duration=10)
+
 # Method to drop a packet
 def drop_packet(packet):
     # TODO: Implement packet dropping logic here
@@ -79,3 +120,6 @@ def drop_packet(packet):
 
 # Sniff packets on the network interface
 sniff(prn=packet_callback, filter="tcp")
+
+# Run the GUI main loop
+window.mainloop()
