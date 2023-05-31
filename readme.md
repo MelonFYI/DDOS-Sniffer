@@ -10,6 +10,7 @@ The DDOS Sniffer is a program that helps detect and mitigate Distributed Denial-
 - Analysis of network packet patterns and characteristics
 - Detection and identification of potential DDoS traffic based on user-defined rules
 - Alert notifications to inform system administrators about potential attacks
+- Interactive console interface with `curses` library for a nicer user experience
 - Customizable and adaptable to different network environments
 
 ## Installation
@@ -19,8 +20,9 @@ The DDOS Sniffer is a program that helps detect and mitigate Distributed Denial-
 ## Usage
 1. Open a terminal or command prompt.
 2. Navigate to the project directory.
-3. Run the program: `python ddos_sniffer.py`
+3. Run the program: `python malicious_traffic_detector.py`
 4. Keep the program running to continuously monitor network traffic for potential DDoS attacks.
+5. Follow the prompts in the console interface to take actions such as changing your IP address.
 
 ## Contributing
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request.
