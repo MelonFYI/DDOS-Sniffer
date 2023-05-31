@@ -1,0 +1,3 @@
+scapy==2.4.5
+win10toast==0.9
+tkinter
