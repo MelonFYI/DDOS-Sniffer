@@ -1,21 +1,18 @@
 import subprocess
-import curses
 from scapy.all import *
 from win10toast import ToastNotifier
 
 # Create a ToastNotifier object
 toaster = ToastNotifier()
 
-# Initialize curses
-stdscr = curses.initscr()
-curses.noecho()
-curses.cbreak()
-stdscr.keypad(True)
+# Define a dictionary to store IP address and packet count
+ip_packet_count = {}
 
-# Define colors for the console interface
-curses.start_color()
-curses.init_pair(1, curses.COLOR_CYAN, curses.COLOR_BLACK)
-curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+# Define the maximum allowed packet count per IP address
+MAX_PACKET_COUNT = 100
+
+# Define the rate limit per IP address (in packets per second)
+RATE_LIMIT = 10
 
 # Define the callback function to process sniffed packets
 def packet_callback(packet):
@@ -33,26 +30,52 @@ def packet_callback(packet):
         # Display a toast notification
         toaster.show_toast("Security Alert", message, duration=10)
 
-        # Ask the user if they want to change their IP address
-        stdscr.addstr("\nDo you want to attempt changing your IP address? (y/n): ", curses.color_pair(1))
-        stdscr.refresh()
-        change_ip = stdscr.getkey()
-        if change_ip.lower() == "y":
-            # Attempt to release and renew the IP address
-            release_ip_cmd = "ipconfig /release"
-            renew_ip_cmd = "ipconfig /renew"
+        # Apply rate limiting
+        if not is_rate_limited(src_ip):
+            increment_packet_count(src_ip)
+            # Apply traffic filtering
+            if is_suspicious_traffic(packet):
+                drop_packet(packet)
 
-            # Execute the commands using subprocess
-            subprocess.run(release_ip_cmd, shell=True)
-            subprocess.run(renew_ip_cmd, shell=True)
-            stdscr.addstr("\nIP address changed successfully.", curses.color_pair(2))
-            stdscr.refresh()
+# Method to check if an IP address is rate limited
+def is_rate_limited(ip):
+    current_time = time.time()
+    if ip in ip_packet_count:
+        count, last_time = ip_packet_count[ip]
+        if count >= MAX_PACKET_COUNT and current_time - last_time < 1:
+            return True
+    return False
+
+# Method to increment packet count for an IP address
+def increment_packet_count(ip):
+    current_time = time.time()
+    if ip in ip_packet_count:
+        count, last_time = ip_packet_count[ip]
+        if current_time - last_time >= 1:
+            ip_packet_count[ip] = (1, current_time)
+        else:
+            ip_packet_count[ip] = (count + 1, last_time)
+    else:
+        ip_packet_count[ip] = (1, current_time)
+
+# Method to check if traffic is suspicious
+def is_suspicious_traffic(packet):
+    # TODO: Implement traffic filtering rules here
+    # Analyze packet characteristics and return True if it's suspicious, otherwise False
+
+    # Example implementation: Consider traffic with a large number of packets per second as suspicious
+    if packet.haslayer(IP):
+        return packet[IP].src == "x.x.x.x" and packet[IP].len > 1000
+    return False
+
+# Method to drop a packet
+def drop_packet(packet):
+    # TODO: Implement packet dropping logic here
+    # Drop or block the packet to prevent it from reaching the target
+
+    # Example implementation using `iptables` command in Linux:
+    drop_packet_cmd = "iptables -A INPUT -p tcp --dport 80 -j DROP"
+    subprocess.run(drop_packet_cmd, shell=True)
 
 # Sniff packets on the network interface
 sniff(prn=packet_callback, filter="tcp")
-
-# Exit curses mode
-curses.nocbreak()
-stdscr.keypad(False)
-curses.echo()
-curses.endwin()
